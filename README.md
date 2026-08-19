@@ -1,9 +1,13 @@
 # 🚛 IoT Vehicle Telemetry — Pereira, Risaralda
 
+🌐 [Español](README.es.md)
+
 > Real-time vehicle telemetry using CT Clamp + Gyroscope + GPS with LoRa Mesh & 4G LTE connectivity.
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
 [![Location](https://img.shields.io/badge/location-Pereira%2C%20Colombia-orange.svg)]()
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Dashboard-00c853.svg)](https://0xraphael.com/college/iot-vehicle-telemetry)
+[![3D Dashboard](https://img.shields.io/badge/▶_Live_Demo-3D_Dashboard-7c4dff.svg)](https://0xraphael.com/college/iot-vehicle-telemetry/dashboard-3d.html)
 
 ## 📋 Overview
 
@@ -416,7 +420,8 @@ IOT_TELEMETRY_ARCHITECTURE/
 ├── icon-urls.json                    # Isometric SVG icon URLs
 ├── package.json                      # npm config
 ├── serve.js                          # Node HTTP server
-└── README.md                         # This file
+├── README.md                         # This file (English)
+└── README.es.md                      # Documentación (Español)
 ```
 
 ---
