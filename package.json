@@ -1,0 +1,38 @@
+{
+  "name": "iot-telemetry-architecture",
+  "version": "1.0.0",
+  "description": "IoT Vehicle Telemetry Architecture Diagram — CT Clamp + Gyroscope + GPS | LoRa Mesh & 4G LTE | Pereira, Risaralda, Colombia",
+  "main": "index.html",
+  "scripts": {
+    "dev": "node serve.js",
+    "dev:python": "python -m http.server 3334",
+    "open": "start index.html",
+    "validate": "node -e \"const d = require('./iot-telemetry-architecture.json'); console.log('✅ Model valid:', d.title, '|', d.items.length, 'items |', d.views.length, 'views |', d.views[0].connectors.length, 'connectors');\"",
+    "build:lib": "echo Architecture is defined as JSON - no build step needed. Run npm run dev to view."
+  },
+  "keywords": [
+    "iot",
+    "telemetry",
+    "lora",
+    "meshtastic",
+    "lilygo",
+    "t-beam",
+    "t-sim",
+    "ct-clamp",
+    "gyroscope",
+    "gps",
+    "supabase",
+    "pereira",
+    "fossflow",
+    "isoflow"
+  ],
+  "author": "Venus Team",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@isoflow/isopacks": "^0.0.10",
+    "fossflow": "^1.0.5"
+  },
+  "devDependencies": {
+  }
+}
