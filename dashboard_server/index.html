@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SOTA IoT Electric Delta-Kart | 30mm Tube 3D + Dark Leaflet GPS + IMU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #060911;
+      --glass-bg: rgba(15, 23, 42, 0.72);
+      --glass-border: rgba(56, 189, 248, 0.22);
+      --cyan: #38bdf8;
+      --coral: #f43f5e;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
+    body { background: var(--bg-dark); color: #f1f5f9; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    header {
+      height: 52px; background: rgba(10, 15, 28, 0.88); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .badge-sota { background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.6px; }
+    .brand-title { font-size: 14px; font-weight: 800; color: #f8fafc; }
+    .rtc-pill { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 10px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 11px; color: #67e8f9; }
+
+    .controls-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .status-chip { display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(148, 163, 184, 0.25); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+    .dot.ok { background: #10b981; box-shadow: 0 0 10px #10b981; }
+    .dot.sim { background: #38bdf8; box-shadow: 0 0 10px #38bdf8; }
+
+    .btn {
+      background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.3); color: #e2e8f0;
+      padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .btn:hover { background: rgba(51, 65, 85, 0.9); border-color: var(--cyan); color: #fff; }
+    .btn.active { background: linear-gradient(135deg, #0284c7, #1d4ed8); border-color: #38bdf8; color: #fff; }
+    .btn-tare { background: rgba(244, 63, 94, 0.2); border-color: #f43f5e; color: #fda4af; }
+    .btn-tare:hover { background: #f43f5e; color: #fff; }
+
+    #workspace {
+      flex: 1; display: grid;
+      grid-template-columns: 1fr 1fr 395px;
+      gap: 10px; padding: 10px; overflow: hidden;
+      background: radial-gradient(circle at 25% 25%, #0f172a 0%, #050811 100%);
+    }
+
+    .glass-stage {
+      position: relative; width: 100%; height: 100%;
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); border-radius: 14px;
+      overflow: hidden; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    }
+
+    .stage-badge {
+      position: absolute; top: 10px; left: 10px; z-index: 20;
+      background: rgba(9, 13, 24, 0.85); backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px;
+      padding: 5px 10px; font-size: 11px; font-weight: 700; color: #e2e8f0;
+      display: flex; align-items: center; gap: 8px; pointer-events: none;
+    }
+    .stage-badge span.sub { color: #38bdf8; font-size: 10px; font-weight: 600; }
+
+    #three-canvas { width: 100%; height: 100%; display: block; }
+
+    .attitude-hud {
+      position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 20;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; pointer-events: none;
+    }
+    .hud-glass {
+      background: rgba(9, 13, 24, 0.85); backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.22); border-radius: 8px; padding: 6px 8px;
+    }
+    .hud-glass .lbl { font-size: 9px; text-transform: uppercase; color: #94a3b8; font-weight: 700; }
+    .hud-glass .val { font-size: 15px; font-weight: 800; color: #38bdf8; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .hud-glass .unit { font-size: 9px; color: #64748b; font-weight: 600; margin-left: 2px; }
+
+    #map-container { width: 100%; height: 100%; position: relative; background: #090d16; }
+    #leaflet-map { width: 100%; height: 100%; z-index: 1; background: #090d16; }
+    #map-kart-canvas {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10; pointer-events: none;
+    }
+    .leaflet-container { background: #090d16 !important; }
+    .leaflet-tile { filter: brightness(0.65) invert(1) contrast(3.2) hue-rotate(200deg) saturate(0.35); }
+    .leaflet-control-attribution { display: none !important; }
+
+    #sidebar { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 2px; }
+    .glass-card {
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    .card-hdr {
+      font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8;
+      letter-spacing: 0.6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; text-align: center; }
+    .pill {
+      background: rgba(9, 13, 24, 0.78); border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 8px; padding: 5px 4px;
+    }
+    .pill .k { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .pill .v { font-size: 13px; font-weight: 800; color: #f8fafc; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .c-x { color: #f43f5e !important; }
+    .c-y { color: #10b981 !important; }
+    .c-z { color: #38bdf8 !important; }
+    .c-amber { color: #fbbf24 !important; }
+    .c-purple { color: #c084fc !important; }
+    .chart-wrap { height: 92px; width: 100%; margin-top: 5px; position: relative; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="badge-sota">30mm TUBE SKELETON</span>
+      <span class="brand-title">Electric Delta-Kart SOTA Telemetry</span>
+      <span class="rtc-pill" id="rtc-clock">DS3231 UTC: 2026-11-08T00:00:00Z</span>
+    </div>
+    <div class="controls-bar">
+      <div class="status-chip">
+        <span class="dot" id="ws-dot"></span>
+        <span id="ws-text">Connecting...</span>
+      </div>
+      <button class="btn" id="btn-sim" onclick="toggleTrackSim()">TEST TRACK DRIVE</button>
+      <button class="btn btn-tare" onclick="tareOrientation()">TARE ZERO</button>
+      <button class="btn" onclick="resetCamera()">RESET 3D</button>
+    </div>
+  </header>
+
+  <div id="workspace">
+    <!-- STAGE 1: 3D Three.js Engineering Studio -->
+    <div class="glass-stage" id="viewport-container">
+      <div class="stage-badge">
+        <span>3D CHASSIS DYNAMICS</span>
+        <span class="sub">2 Front / 1 Rear | 30mm Tube Frame</span>
+      </div>
+      <canvas id="three-canvas"></canvas>
+      <div class="attitude-hud">
+        <div class="hud-glass">
+          <div class="lbl">Roll Angle</div>
+          <div><span class="val" id="hud-roll">0.0</span><span class="unit">deg</span></div>
+        </div>
+        <div class="hud-glass">
+          <div class="lbl">Pitch Angle</div>
+          <div><span class="val" id="hud-pitch">0.0</span><span class="unit">deg</span></div>
+        </div>
+        <div class="hud-glass">
+          <div class="lbl">Yaw Heading</div>
+          <div><span class="val" id="hud-yaw">0.0</span><span class="unit">deg</span></div>
+        </div>
+        <div class="hud-glass">
+          <div class="lbl">Peak G / Vib</div>
+          <div><span class="val c-x" id="hud-peakg">1.00</span><span class="unit">g</span></div>
+
+    <!-- STAGE 2: Dark-Mode Leaflet GPS Map + Live 3D Three.js Kart Moving Over Map -->
+    <div class="glass-stage" id="map-container">
+      <div class="stage-badge">
+        <span>DARK LEAFLET GPS + 3D KART OVERLAY</span>
+        <span class="sub" id="gps-fix-badge">SIM7672G GNSS</span>
+      </div>
+      <div id="leaflet-map"></div>
+      <canvas id="map-kart-canvas"></canvas>
+      <div class="gps-telemetry-bar">
+        <div class="hud-glass">
+          <div class="lbl">LilyGO GPS Coordinates</div>
+          <div><span class="val" style="font-size:12px;" id="hud-coords">4.81333, -75.69611</span></div>
+        </div>
+        <div class="hud-glass">
+          <div class="lbl">Ground Speed</div>
+          <div><span class="val c-y" id="hud-speed">0.0</span><span class="unit">km/h</span></div>
+        </div>
+        <div class="hud-glass">
+          <div class="lbl">Altitude</div>
+          <div><span class="val" id="hud-alt">1411</span><span class="unit">m</span></div>
+        </div>
+        <div class="hud-glass">
+          <div class="lbl">Satellites</div>
+          <div><span class="val c-amber" id="hud-sats">9</span><span class="unit">SVs</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAGE 3: Right Glassmorphism Telemetry Sidebar -->
+    <div id="sidebar">
+      <div class="glass-card">
+        <div class="card-hdr">
+          <span>18650 Power &amp; Dual Thermal</span>
+          <span style="color:#38bdf8;">Raw V / mV (No %)</span>
+        </div>
+        <div class="grid-2" style="margin-bottom:6px;">
+          <div class="pill">
+            <div class="k">18650 Battery Voltage</div>
+            <div class="v c-y" id="stat-vbat">3.980 V <span style="font-size:10px;color:#94a3b8;">(3980 mV)</span></div>
+          </div>
+          <div class="pill">
+            <div class="k">Solar Input Bus</div>
+            <div class="v c-amber" id="stat-solar">0 mV <span style="font-size:10px;color:#94a3b8;">(0.00 V)</span></div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="pill"><div class="k">BMI160 Gyro Temp</div><div class="v c-x" id="stat-gtemp">30.2 °C</div></div>
+          <div class="pill"><div class="k">DS3231 RTC Temp</div><div class="v c-z" id="stat-rtemp">29.8 °C</div></div>
+          <div class="pill"><div class="k">Chassis Vib RMS</div><div class="v" id="stat-vib">0.012 g</div></div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-hdr">
+          <span>BMI160 Gyroscope Rates</span>
+          <span>deg/s</span>
+        </div>
+        <div class="grid-3">
+          <div class="pill"><div class="k c-x">Gx (Roll)</div><div class="v" id="stat-gx">0.00</div></div>
+          <div class="pill"><div class="k c-y">Gy (Pitch)</div><div class="v" id="stat-gy">0.00</div></div>
+          <div class="pill"><div class="k c-z">Gz (Yaw)</div><div class="v" id="stat-gz">0.00</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="gyroChart"></canvas></div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-hdr">
+          <span>BMI160 Accelerometer Forces</span>
+          <span>g-force</span>
+        </div>
+        <div class="grid-3">
+          <div class="pill"><div class="k c-x">Ax (Lat)</div><div class="v" id="stat-ax">0.00</div></div>
+          <div class="pill"><div class="k c-y">Ay (Long)</div><div class="v" id="stat-ay">0.00</div></div>
+          <div class="pill"><div class="k c-z">Az (Vert)</div><div class="v" id="stat-az">1.01</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="accChart"></canvas></div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-hdr">
+          <span>32GB MicroSD &amp; Cloud Sync</span>
+          <span id="stat-boot" style="color:#c084fc;">Session #1</span>
+        </div>
+        <div class="grid-3">
+          <div class="pill"><div class="k">32GB MicroSD</div><div class="v c-purple" id="stat-sd">READY (0 KB)</div></div>
+          <div class="pill"><div class="k">Supabase Rows</div><div class="v c-z" id="stat-cloud">0 Sent</div></div>
+          <div class="pill"><div class="k">Link / Rate</div><div class="v" id="stat-hz">-- Hz</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="kart_model.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
+
+        </div>
+      </div>
+    </div>
+
+
+    .gps-telemetry-bar {
+      position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 20;
+      display: grid; grid-template-columns: 1.4fr 1fr 0.9fr 0.8fr; gap: 6px; pointer-events: none;
+    }

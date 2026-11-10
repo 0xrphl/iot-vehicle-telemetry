@@ -1,247 +1,42 @@
 ===============================================================================
-  📦 AliExpress Component Sourcing — IoT Vehicle Telemetry Project
-  📍 Pereira, Risaralda, Colombia
-  💰 Updated: August 2026
+  📦 AliExpress Component Sourcing — Electric Delta-Kart IoT Telemetry
+  📍 Pereira, Risaralda, Colombia (Single-Vehicle Build)
+  💰 Updated: November 2026
 ===============================================================================
 
+1. 📱 LilyGO T-SIM7672G V1.1 — ESP32-S3 + 4G LTE Cat-1 + Multi-GNSS + 18650 + SD
+   🔗 URL:   https://aliexpress.com/item/1005007058444056.html
+   💲 Price: $45.00 USD
+   📋 Specs: ESP32-S3-WROOM-1 MCN16R8 (16MB Flash / 8MB PSRAM), SIM7672G 4G LTE
+             + Multi-GNSS (GPS/GLONASS/Galileo/BeiDou), 18650 holder, MicroSD slot
 
-───────────────────────────────────────────────────────────────────────────────
-1. ☀️ SOLAR PANEL — Mini Mono/Poly DIY Solar Charger
-───────────────────────────────────────────────────────────────────────────────
+2. 🔄 Bosch BMI160 — 6-DOF Gyroscope + Accelerometer + Die Temp Module
+   🔗 URL:   https://www.aliexpress.us/item/3256809462979321.html
+   💲 Price: $2.50 USD
+   📋 Specs: Wire0 I2C (SDA=GPIO 1, SCL=GPIO 2 @ 400kHz, 0x68), 30Hz attitude fusion
 
-🔗 URL:     https://es.aliexpress.com/item/1005005825496564.html
-📛 Title:   1PC 1V 1.5V 2V 2.5V 3V 3.5V Mono/Poly Solar Panel
-            50mA–300mA Mini Round/Square DIY Solar Charger
-⭐ Rating:  4.8 (80 reviews)
-📦 Sales:   1,000+ sold
-💲 Price:   $5.49 (special offer, ends Aug 26)
-🏷️ Cert:    CE certified
+3. ⏱️ Maxim DS3231SN/MZ + AT24C32 — Precision TCXO RTC + EEPROM + CR2032
+   🔗 URL:   https://www.aliexpress.com/w/wholesale-DS3231-AT24C32-module.html
+   💲 Price: $2.20 USD
+   📋 Specs: Wire1 I2C (SDA=GPIO 42, SCL=GPIO 41 @ 400kHz, 0x68/0x57), zero collision
 
-📐 Recommended Variant:
-   • 2V 150mA 60×60mm  → for vehicle LoRa nodes
-   • 3V 150mA 60×55mm  → for gateway/repeater nodes
+4. 🔋 18650 Li-Ion Cell (3400mAh 3.7V/4.2V)
+   💲 Price: $3.50 USD
+   📋 Specs: Monitored via GPIO 4 x2 ADC divider in raw V & mV (strictly no %)
 
-📋 Available Variants:
-   ┌──────────────────────┬──────────────────────┬──────────────────────┐
-   │ 1V 85mA 30×25mm      │ 2V 50mA 45×45mm      │ 3V 100mA 65×48mm     │
-   │ 1V 80mA 30×25mm      │ 2V 130mA 54×54mm     │ 3V 120mA 52×52mm     │
-   │ 1V 500mA 60×60 cable │ 2V 60mA 2R77mm       │ 3V 150mA 60×55mm  ✅ │
-   │ 1.5V 300mA 60×70     │ 2V 100mA 50×50 cable │ 3.5V 40mA 40×28mm   │
-   │ 1.5V 434mA 60×80     │ 2V 300mA 50×80 cable │                      │
-   │ 2V 35mA 2R36mm       │ 2V 150mA 60×60mm  ✅ │                      │
-   │ 2V 50mA 2R55mm       │ 2V 130mA 58×38mm     │                      │
-   │ 2.5V 80mA 2R73.5mm   │ 2V 100mA 60×60mm     │                      │
-   └──────────────────────┴──────────────────────┴──────────────────────┘
+5. ☀️ Mono/Poly Solar Panel (5V–6V 150mA)
+   🔗 URL:   https://es.aliexpress.com/item/1005005825496564.html
+   💲 Price: $5.49 USD
+   📋 Specs: Monitored via GPIO 5 x2 ADC divider in raw mV & V
 
-📝 Notes:
-   • Lightweight (50g), compact, weatherproof
-   • Efficient mono/poly solar cells
-   • Pairs with TP4056 USB-C charger → 18650 battery → ESP32
-   • Daily yield ~150mAh (6h sun, Pereira average)
-   • Package: 11×6×3 cm, 0.050 kg
+6. 💾 32 GB MicroSDHC Card (Class 10 SPI Blackbox)
+   💲 Price: $5.80 USD
+   📋 Specs: SPI (CS=13, MOSI=14, SCK=21, MISO=47), 5Hz CSV logs (>11,000 hrs)
 
-
-───────────────────────────────────────────────────────────────────────────────
-2. 📡 SX1278 LoRa MODULE — Ra-02 433MHz (10KM Range)
-───────────────────────────────────────────────────────────────────────────────
-
-🔗 URL:     https://es.aliexpress.com/item/1005004991920495.html
-📛 Title:   433MHz SX1278 LoRa Module 433M 10KM Ra-02
-            Wireless Spread Spectrum Transmission Board + IPX Antenna
-⭐ Rating:  4.8 (183 reviews)
-📦 Sales:   4,000+ sold
-💲 Price:   $4.17 (5% off, was $4.39)
-
-📐 Variant: Ra-02 with Antenna (IPX spring antenna included)
-
-📋 Key Specs:
-   • Chip:        Semtech SX1278
-   • Frequency:   433 MHz
-   • Modulation:  LoRa (CSS) / FSK / OOK
-   • TX Power:    +20 dBm (100mW)
-   • Sensitivity:  -148 dBm
-   • Range:        Up to 10 km (LOS)
-   • SF:           SF6–SF12
-   • Bandwidth:    7.8–500 kHz
-   • Interface:    SPI (up to 10MHz)
-   • Supply:       1.8–3.7V
-   • Package:      5×5×5 cm, 0.020 kg
-
-📝 Notes:
-   • Used in LoRa gateway (ESP32 DevKit + SX1278)
-   • Spring antenna included (IPX connector)
-   • Perfect for smart home / IoT mesh networks
-
-
-───────────────────────────────────────────────────────────────────────────────
-3. 🚛 LilyGo T-Beam V1.2 — ESP32 + LoRa + GPS + 18650
-───────────────────────────────────────────────────────────────────────────────
-
-🔗 URL:     https://aliexpress.com/item/4001178678568.html
-📛 Title:   LILYGO® TTGO Meshtastic T-Beam V1.2 ESP32 LoRa
-            433/868/915/923MHz WiFi BLE GPS OLED AXP2101
-💲 Price:   ~$28.00
-
-📋 Key Specs:
-   • MCU:      ESP32 (Xtensa LX6, 240MHz dual-core)
-   • Flash:    4MB / PSRAM: 8MB
-   • LoRa:     SX1262 — 433/868/915MHz, 20dBm
-   • GPS:      NEO-6M (UART, 2.5m CEP)
-   • PMU:      AXP2101 — 18650 charge/discharge
-   • WiFi:     802.11 b/g/n (2.4GHz)
-   • BT:       4.2 + BLE
-   • USB:      Type-C (CP2102)
-   • GPIO:     34 programmable
-   • Firmware:  Meshtastic compatible
-
-📝 Notes:
-   • Main MCU for vehicle LoRa nodes
-   • Built-in GPS + LoRa + battery management
-   • Deep sleep ~10µA for solar-powered operation
-
-
-───────────────────────────────────────────────────────────────────────────────
-4. 📱 LilyGo T-SIM7670G-S3 — ESP32-S3 + 4G LTE + GPS
-───────────────────────────────────────────────────────────────────────────────
-
-🔗 URL:     https://aliexpress.com/item/1005007058444056.html
-📛 Title:   LILYGO® T-SIM7670G-S3 LTE 4G Development Board
-            Cellular IoT Low-Power Long-Range Communication + GPS
-💲 Price:   ~$45.00
-
-📋 Key Specs:
-   • MCU:       ESP32-S3 (Xtensa LX7, 240MHz dual-core)
-   • Flash:     16MB / PSRAM: 8MB
-   • Cellular:  SIM7670G LTE CAT-1 (DL 10Mbps)
-   • Bands:     B1/B2/B3/B4/B5/B7/B8/B28/B66
-   • GPS:       Built-in GNSS
-   • SIM:       Nano-SIM slot
-   • WiFi:      802.11 b/g/n
-   • BT:        5.0 + BLE
-   • USB:       Type-C (native USB-OTG)
-   • Battery:   18650 holder
-   • Antenna:   External SMA (LTE + GPS)
-
-📝 Notes:
-   • 4G backup gateway for rural / no-WiFi areas
-   • Requires SIM card (Claro/Movistar, $5/mo data)
-   • Used for EV vehicles needing direct cellular uplink
-
-
-───────────────────────────────────────────────────────────────────────────────
-5. ⚡ SCT-013 — CT Clamp Current Transformer (0–100A)
-───────────────────────────────────────────────────────────────────────────────
-
-🔗 URL:     https://www.aliexpress.us/item/3256808061666229.html
-📛 Title:   SCT-013 0-100A Open-Close Current Transformer
-            Non-invasive AC Current Sensor Split Core
-⭐ Rating:  4.9 (211 reviews)
-📦 Sales:   5,000+ total (66 from this seller)
-💲 Price:   $6.03 (special offer, ends Aug 26)
-
-📐 Recommended Variant: 30A 1V (for vehicle motor monitoring)
-
-📋 Available Variants:
-   ┌──────────────┬──────────────┬──────────────┐
-   │ 5A 1V        │ 25A 1V       │ 60A 1V       │
-   │ 10A 1V       │ 30A 1V    ✅ │ 100A 1V      │
-   │ 15A 1V       │ 50A 1V       │ 100A 50mA    │
-   │ 20A 1V       │              │              │
-   └──────────────┴──────────────┴──────────────┘
-
-📋 Key Specs:
-   • Measurement:  AC Current (non-invasive)
-   • Range:        0–30A (recommended) / 0–100A
-   • Output:       0–1V AC
-   • Accuracy:     ±1%
-   • Linearity:    ±0.2%
-   • Type:         Split-core, clamp-on (no wire cutting)
-   • Aperture:     13mm
-   • Burden R:     33Ω (for 30A → 1V output)
-   • Frequency:    50/60Hz
-   • Dielectric:   6000V AC / 1min
-
-📝 Notes:
-   • Clamps around vehicle power cable (non-invasive)
-   • Requires burden resistor (33Ω) + ADS1115 ADC
-   • Measures amps → derive voltage, power factor
-
-
-───────────────────────────────────────────────────────────────────────────────
-6. 📏 ADS1115 — 16-Bit I2C ADC Module (4 Channel)
-───────────────────────────────────────────────────────────────────────────────
-
-🔗 URL:     https://www.aliexpress.us/item/3256812085808204.html
-📛 Title:   ADS1115 16 Bit I2C Module Precision ADC 4 Channel
-            Development Board Pro Gain Amplifier 2.0V to 5.5V
-📦 Sales:   34 sold
-💲 Price:   $2.28 (4% off, was $2.40)
-
-📐 Variant: Purple board
-
-📋 Key Specs:
-   • Resolution:   16-bit
-   • Channels:     4 single-ended / 2 differential
-   • Sample Rate:  8–860 SPS (programmable)
-   • Input Range:  ±0.256V to ±6.144V (PGA)
-   • Supply:       2.0–5.5V
-   • Interface:    I2C (address 0x48–0x4B)
-   • INL:          ±0.5 LSB max
-   • Power:        150µA (continuous), 0.5µA (shutdown)
-   • Package:      13×11×4 cm
-
-📝 Notes:
-   • Reads CT clamp analog 0–1V output
-   • Programmable gain amplifier for low-voltage signals
-   • I2C bus — shares with BMI160 gyroscope
-   • Ultra-low power for battery-powered nodes
-
-
-───────────────────────────────────────────────────────────────────────────────
-7. 🔄 BMI160 — 6DOF Gyroscope + Accelerometer Module
-───────────────────────────────────────────────────────────────────────────────
-
-🔗 URL:     https://www.aliexpress.us/item/3256809462979321.html
-📛 Title:   BMI160 GY-BMI160 6DOF 6-axis Rate Gyro Gravity
-            Accelerometer Sensor Module IIC I2C SPI 3-5V
-💲 Price:   ~$2.50
-
-📋 Key Specs:
-   • Axes:         6DOF (3-axis gyroscope + 3-axis accelerometer)
-   • Gyro Range:   ±125 / ±250 / ±500 / ±1000 / ±2000°/s
-   • Accel Range:  ±2 / ±4 / ±8 / ±16g
-   • Resolution:   16-bit (both)
-   • ODR (Gyro):   25–3200 Hz
-   • ODR (Accel):  12.5–1600 Hz
-   • Noise:        0.007 °/s/√Hz (gyro)
-   • Interface:    I2C (0x68/0x69) / SPI (10MHz)
-   • Supply:       1.71–3.6V (core), 1.2–3.6V (I/O)
-   • Current:      925µA (active), 3µA (suspend)
-
-📝 Notes:
-   • Measures vehicle pitch, roll, yaw, and vibration
-   • I2C address 0x68 — shared bus with ADS1115
-   • Ultra-low power (3µA suspend) for battery nodes
-   • Bosch sensor — industrial-grade reliability
-
+7. 📶 Movistar Colombia 4G Nano-SIM (220 MB Plan) + Dupont Harness
+   💲 Price: $5.01 USD
+   📋 Specs: APN internet.movistar.com.co (>650 hrs active driving sync to Supabase)
 
 ===============================================================================
-  💰 PRICE SUMMARY
-===============================================================================
-
-  ┌────┬──────────────────────────────┬──────────┬──────────────────────┐
-  │  # │ Component                    │  Price   │ AliExpress Link      │
-  ├────┼──────────────────────────────┼──────────┼──────────────────────┤
-  │  1 │ Solar Panel (2V 150mA)       │   $5.49  │ /item/100500582...   │
-  │  2 │ SX1278 Ra-02 LoRa (433MHz)  │   $4.17  │ /item/100500499...   │
-  │  3 │ T-Beam V1.2 (ESP32+LoRa)    │  $28.00  │ /item/400117867...   │
-  │  4 │ T-SIM7670G-S3 (4G+GPS)      │  $45.00  │ /item/100500705...   │
-  │  5 │ SCT-013 CT Clamp (30A)      │   $6.03  │ /item/325680806...   │
-  │  6 │ ADS1115 ADC (16-bit)        │   $2.28  │ /item/325681208...   │
-  │  7 │ BMI160 Gyroscope (6DOF)     │   $2.50  │ /item/325680946...   │
-  ├────┼──────────────────────────────┼──────────┼──────────────────────┤
-  │    │ TOTAL (per vehicle node)     │  $48.50  │                      │
-  │    │ TOTAL (10 vehicles + infra)  │ $868.10  │                      │
-  └────┴──────────────────────────────┴──────────┴──────────────────────┘
-
+  💰 SINGLE-VEHICLE TOTAL: $69.50 USD
 ===============================================================================
