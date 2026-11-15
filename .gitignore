@@ -2,5 +2,11 @@ node_modules/
 **/node_modules/
 __pycache__/
 **/__pycache__/
+dist/
+**/dist/
 .env
+.env.*
+**/secrets.h
+credentials.txt
 .DS_Store
+

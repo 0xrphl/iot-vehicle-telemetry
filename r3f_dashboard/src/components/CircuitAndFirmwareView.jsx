@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 
 const FIRMWARE_FILES = [
-  { id: 'main.ino', label: 'main/main.ino', path: './firmware/main/main.ino', desc: 'Master 30Hz IMU/WS + 5Hz MicroSD CSV + 0.67Hz GNSS + Adaptive 4G/Wi-Fi Supabase Sync loop' },
-  { id: 'config.h', label: 'main/config.h', path: './firmware/main/config.h', desc: 'Pin definitions for LilyGO T-SIM7672G V1.1, Dual I2C buses, Movistar APN, Supabase credentials & KartTelemetry struct' },
-  { id: 'imu_bmi160.h', label: 'imu_bmi160.h', path: './firmware/main/imu_bmi160/imu_bmi160.h', desc: 'Bosch BMI160 6-DOF driver on Wire0 (IO1/IO2 @ 400kHz), die temperature (°C), complementary filter & vibration RMS' },
-  { id: 'rtc_ds3231.h', label: 'rtc_ds3231.h', path: './firmware/main/rtc_ds3231/rtc_ds3231.h', desc: 'DS3231 TCXO RTC (0x68) + AT24C32 EEPROM (0x57) on Wire1 (IO42/IO41), auto-pin-swap recovery & atomic GNSS UTC sync' },
-  { id: 'gps_sim7672.h', label: 'gps_sim7672.h', path: './firmware/main/gps_sim7672/gps_sim7672.h', desc: 'SIM7672G 4G LTE Cat-1 (Movistar APN) + Multi-GNSS (AT+CGNSSINFO) driver & HTTPS POST via cellular AT commands' },
-  { id: 'power_18650.h', label: 'power_18650.h', path: './firmware/main/power_18650/power_18650.h', desc: '18650 Li-Ion (GPIO 4) & Solar (GPIO 5) x2 ADC voltage divider monitor outputting raw mV and V (strictly no %)' },
-  { id: 'sd_logger.h', label: 'sd_logger.h', path: './firmware/main/sd_logger/sd_logger.h', desc: '32GB MicroSD SPI blackbox logger (CS:13, MOSI:14, SCK:21, MISO:47) writing 5Hz CSV logs to /logs/kart_session_XXXX.csv' },
-  { id: 'self_test.h', label: 'self_test.h', path: './firmware/main/self_test/self_test.h', desc: 'Parametric Built-In Self-Test (BIST) engine verifying 6 hardware subsystems on boot and syncing JSON to kart_sessions.test' },
-  { id: 'telemetry_sync.h', label: 'telemetry_sync.h', path: './firmware/main/telemetry_sync/telemetry_sync.h', desc: 'Dual-path dispatcher: 30Hz local WebSocket server (Port 81) + Wi-Fi/4G LTE Supabase REST ingestion' },
-  { id: 'rtc_troubleshoot.ino', label: 'rtc_troubleshoot.ino', path: './firmware/rtc_troubleshoot/rtc_troubleshoot.ino', desc: 'Dedicated diagnostic & auto-recovery suite for DS3231 + AT24C32 on Wire1 (IO42/IO41)' },
-  { id: 'schema.sql', label: 'supabase/schema.sql', path: './firmware/supabase/schema.sql', desc: 'PostgreSQL schema: kart_sessions, kart_telemetry (~76B/row), BRIN index, 500MB free-tier ring-buffer trigger & Realtime' }
+  { id: 'main.ino', label: 'main/main.ino', path: './firmware/main/main.ino', desc: 'Master 30Hz IMU/WS + 20Hz INA22x 48V + 2Hz SHT31 + 1Hz DS18B20/GNSS + 5Hz SD + Supabase loop' },
+  { id: 'config.h', label: 'main/config.h', path: './firmware/main/config.h', desc: 'Quad Isolated I2C + 1-Wire pin definitions, Multi-Wi-Fi fallback, UTP geofence & KartTelemetry struct' },
+  { id: 'power_ina22x.h', label: 'power_ina22x.h', path: './firmware/main/power_ina22x/power_ina22x.h', desc: 'TI INA226 (16-bit) & INA228 (20-bit 85V) 48V DC Traction Pack monitor on SDA=IO6, SCL=IO7 + Wh/Ah integrator' },
+  { id: 'env_sht31.h', label: 'env_sht31.h', path: './firmware/main/env_sht31/env_sht31.h', desc: 'Red 4-Pin Sensirion SHT31-DIS on SDA=IO40, SCL=IO39 (0x44), dual CRC-8, Magnus Dew Point/VPD & Heater BIST' },
+  { id: 'temp_ds18b20.h', label: 'temp_ds18b20.h', path: './firmware/main/temp_ds18b20/temp_ds18b20.h', desc: 'Zero-dependency ESP32-S3 1-Wire driver on IO15 (+4.7k pull-up) for Controller & Motor DS18B20 probes' },
+  { id: 'imu_bmi160.h', label: 'imu_bmi160.h', path: './firmware/main/imu_bmi160/imu_bmi160.h', desc: 'Bosch BMI160 6-DOF driver on Wire0 (IO1/IO2 @ 400kHz), gyro zero-bias cal, complementary filter & vibration RMS' },
+  { id: 'rtc_ds3231.h', label: 'rtc_ds3231.h', path: './firmware/main/rtc_ds3231/rtc_ds3231.h', desc: 'Genuine DS3231 TCXO (0x68) + AT24C32 (0x57) on Wire1 (IO42/IO41), NTP/GNSS sync & crystal aging trim' },
+  { id: 'gps_sim7672.h', label: 'gps_sim7672.h', path: './firmware/main/gps_sim7672/gps_sim7672.h', desc: 'SIM7670G/7672G 4G LTE + Multi-GNSS (active 28dBi LNA, $GxGSV SNR & UTP Pereira lock)' },
+  { id: 'calibration_manager.h', label: 'calibration_manager.h', path: './firmware/main/calibration/calibration_manager.h', desc: '6-Sensor NVS & MicroSD (/calibration/*.csv) calibration curve manager' },
+  { id: 'ina22x_48v_cal_test.ino', label: 'ina22x_48v_cal_test.ino', path: './firmware/ina22x_48v_cal_test/ina22x_48v_cal_test.ino', desc: 'Standalone bench testing & multimeter/shunt calibration suite for INA226/INA228 48V DC' },
+  { id: 'self_test.h', label: 'self_test.h', path: './firmware/main/self_test/self_test.h', desc: '10-Subsystem Parametric Boot & Live Self-Test (BIST) synced to kart_sessions.test' },
+  { id: 'schema.sql', label: 'supabase/schema.sql', path: './firmware/supabase/schema.sql', desc: 'PostgreSQL schema + additive migration columns for SHT31, DS18B20, INA22x 48V & Multi-GNSS' }
 ];
 
 const PINOUT_ROWS = [
@@ -67,43 +68,61 @@ export function CircuitAndFirmwareView({ lang = 'en' }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: '12px' }}>
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div className="card-hdr">
-            <span>{lang === 'es' ? 'ESQUEMA ELÉCTRICO COMPLETO (DUAL I2C SIN COLISIÓN)' : 'FULL HARDWARE WIRING SCHEMATIC (ZERO-COLLISION DUAL I2C)'}</span>
+            <span>{lang === 'es' ? 'ESQUEMA ELÉCTRICO FINAL (4 BUSES I2C AISLADOS + 1-WIRE)' : 'FINAL HARDWARE WIRING SCHEMATIC (QUAD ISOLATED I2C + 1-WIRE)'}</span>
             <div style={{ display: 'flex', gap: '6px' }}>
-              <a href="./hardware_schematics/circuit_layout_full.svg" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', padding: '3px 8px', fontSize: '10px' }}>OPEN VECTOR SVG ↗</a>
-              <a href="./hardware_schematics/circuit_layout_full.png" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', padding: '3px 8px', fontSize: '10px' }}>OPEN HIGH-RES PNG ↗</a>
+              <a href="./hardware_schematics/circuit_layout_full.svg" download="circuit_layout_full.svg" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', padding: '3px 8px', fontSize: '10px' }}>⬇ VECTOR SVG</a>
+              <a href="./hardware_schematics/circuit_layout_full.png" download="circuit_layout_full.png" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', padding: '3px 8px', fontSize: '10px' }}>⬇ FINAL PNG</a>
             </div>
           </div>
           <div style={{ background: '#0b1120', borderRadius: '10px', border: '1px solid rgba(56,189,248,0.25)', padding: '8px', textAlign: 'center' }}>
             <img
-              src="./hardware_schematics/circuit_layout_full.svg"
-              alt="LilyGO T-SIM7672G Full Circuit Schematic"
-              style={{ width: '100%', maxHeight: '420px', objectFit: 'contain', borderRadius: '6px' }}
+              src="./hardware_schematics/circuit_layout_full.png"
+              alt="LilyGO T-SIM7672G Final Full Circuit Layout"
+              style={{ width: '100%', maxHeight: '460px', objectFit: 'contain', borderRadius: '6px' }}
             />
           </div>
         </div>
 
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div className="card-hdr">
-            <span>{lang === 'es' ? 'FOTOS REALES DEL MONTAJE Y DATASHEETS' : 'REAL HARDWARE BUILD PHOTOS & DATASHEETS'}</span>
-            <span style={{ color: '#10b981' }}>LilyGO T-SIM7672G V1.1</span>
+            <span>{lang === 'es' ? 'FOTOS REALES Y DESCARGA DE TODOS LOS DATASHEETS (PDF)' : 'REAL BUILD PHOTOS & ALL SENSOR DATASHEETS (DOWNLOAD PDF)'}</span>
+            <span style={{ color: '#10b981' }}>8 Official PDFs</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
             <a href="./hardware_schematics/IMG_20261104_113059.jpg" target="_blank" rel="noreferrer">
-              <img src="./hardware_schematics/IMG_20261104_113059.jpg" alt="Hardware Build 1" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }} />
+              <img src="./hardware_schematics/IMG_20261104_113059.jpg" alt="BMI160 PCB" style={{ width: '100%', height: '115px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }} />
             </a>
             <a href="./hardware_schematics/IMG_20261104_113117.jpg" target="_blank" rel="noreferrer">
-              <img src="./hardware_schematics/IMG_20261104_113117.jpg" alt="Hardware Build 2" style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }} />
+              <img src="./hardware_schematics/IMG_20261104_113117.jpg" alt="SIM7670G Modem" style={{ width: '100%', height: '115px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }} />
             </a>
-            <a href="./hardware_schematics/IMG_20261104_113129.jpg" target="_blank" rel="noreferrer" style={{ gridColumn: '1 / -1' }}>
-              <img src="./hardware_schematics/IMG_20261104_113129.jpg" alt="Hardware Build 3" style={{ width: '100%', height: '145px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }} />
+            <a href="./hardware_schematics/IMG_20261104_113129.jpg" target="_blank" rel="noreferrer">
+              <img src="./hardware_schematics/IMG_20261104_113129.jpg" alt="ESP32-S3 Headers" style={{ width: '100%', height: '115px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(56,189,248,0.3)' }} />
             </a>
           </div>
-          <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-            <a href="./hardware_schematics/SIM7672X_Series_Hardware_Design_V1.02.pdf" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', flex: 1, textAlign: 'center' }}>
-              📄 SIM7672G Hardware Design PDF
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '4px' }}>
+            <a href="./hardware_schematics/SIM7672X_Series_Hardware_Design_V1.02.pdf" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 SIM7670G/7672X Hardware PDF
             </a>
-            <a href="./hardware_schematics/bmi160-inertial-measurement-units.pdf" target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', flex: 1, textAlign: 'center' }}>
-              📄 Bosch BMI160 IMU Datasheet PDF
+            <a href="./hardware_schematics/INA228.PDF" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 TI INA228 (85V 48V DC) PDF
+            </a>
+            <a href="./hardware_schematics/SHT31_Datasheet.pdf" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 Sensirion SHT31-DIS PDF
+            </a>
+            <a href="./hardware_schematics/DS18B20.PDF" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 Maxim DS18B20 1-Wire PDF
+            </a>
+            <a href="./hardware_schematics/bmi160-inertial-measurement-units.pdf" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 Bosch BMI160 6-DOF IMU PDF
+            </a>
+            <a href="./hardware_schematics/DS3231.PDF" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 Maxim DS3231 TCXO RTC PDF
+            </a>
+            <a href="./hardware_schematics/AT24C32.PDF" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 AT24C32 32Kb EEPROM PDF
+            </a>
+            <a href="./hardware_schematics/FNIRSI_2C53T_Manual.pdf" download target="_blank" rel="noreferrer" className="btn" style={{ textDecoration: 'none', textAlign: 'center', fontSize: '10.5px', padding: '6px' }}>
+              📄 FNIRSI 2C53T Scope/DMM PDF
             </a>
           </div>
         </div>

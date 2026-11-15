@@ -1,0 +1,75 @@
+-- ============================================================================
+-- SUPABASE SQL EDITOR PENDING MIGRATION: SHT31 + DS18B20 + MULTI-GNSS COLUMNS
+-- Project: tapjoxeplcyeohsnrmnl (SOTA IoT Electric Delta-Kart Telemetry)
+--
+-- SAFE & ADDITIVE FOR LIVE DATABASE:
+-- Verified against existing rows in `public.kart_sessions` and `public.kart_telemetry`
+-- (347+ live rows preserved 100% intact with `DEFAULT NULL`).
+-- Paste this entire script into Supabase Dashboard -> SQL Editor -> Click "Run".
+-- ============================================================================
+
+-- 1. Add Multi-Sensor Calibration Certificates JSONB column to `kart_sessions`
+ALTER TABLE public.kart_sessions
+    ADD COLUMN IF NOT EXISTS test        JSONB DEFAULT '{}'::JSONB,
+    ADD COLUMN IF NOT EXISTS calibration JSONB DEFAULT '{}'::JSONB;
+
+-- 2. Add SHT31-DIS (Temp, %RH, Dew Point), DS18B20 1-Wire (Controller & Motor Probes),
+--    and Multi-GNSS Quality (HDOP, Sats-in-View) to `kart_telemetry`
+ALTER TABLE public.kart_telemetry
+    ADD COLUMN IF NOT EXISTS sht_temp_c    REAL DEFAULT NULL,     -- Calibrated Red 4-Pin SHT31 Temp (°C)
+    ADD COLUMN IF NOT EXISTS sht_hum_rh    REAL DEFAULT NULL,     -- Calibrated Red 4-Pin SHT31 Humidity (%RH)
+    ADD COLUMN IF NOT EXISTS dew_point_c   REAL DEFAULT NULL,     -- Magnus-Tetens Psychrometric Dew Point (°C)
+    ADD COLUMN IF NOT EXISTS hdop          REAL DEFAULT NULL,     -- GNSS Horizontal Dilution of Precision
+    ADD COLUMN IF NOT EXISTS sats_view     SMALLINT DEFAULT NULL, -- Multi-GNSS Satellites in View (GPS+BDS+GLO+GAL)
+    ADD COLUMN IF NOT EXISTS ds18_ctrl_c   REAL DEFAULT NULL,     -- Calibrated DS18B20 Probe 0: Controller TS T-Alpha (°C)
+    ADD COLUMN IF NOT EXISTS ds18_motor_c  REAL DEFAULT NULL,     -- Calibrated DS18B20 Probe 1: Motor Stator Ts (°C)
+    ADD COLUMN IF NOT EXISTS ina_bus_v     REAL DEFAULT NULL,     -- TI INA226/INA228 48V DC Traction Pack Voltage (V)
+    ADD COLUMN IF NOT EXISTS ina_current_a REAL DEFAULT NULL,     -- TI INA226/INA228 48V DC Traction Current (A)
+    ADD COLUMN IF NOT EXISTS ina_power_w   REAL DEFAULT NULL,     -- TI INA226/INA228 48V DC Traction Power (W)
+    ADD COLUMN IF NOT EXISTS ina_energy_wh REAL DEFAULT NULL;     -- Cumulative Traction Energy (Wh)
+
+-- 3. Update `public.v_kart_live` View
+--    Preserves columns 1..29 in the exact existing order required by PostgreSQL
+--    `CREATE OR REPLACE VIEW`, appending new columns 30..40 at the end!
+CREATE OR REPLACE VIEW public.v_kart_live AS
+SELECT
+    id,
+    session_id,
+    rtc_ts,
+    vbat_mv,
+    ROUND((vbat_mv / 1000.0)::NUMERIC, 3) AS vbat_v,
+    solar_mv,
+    gyro_temp_c,
+    rtc_temp_c,
+    ax, ay, az,
+    gx, gy, gz,
+    roll, pitch, yaw,
+    peak_g, vib_rms,
+    lat, lon, speed_kmh, alt_m, course_deg, sats, gps_fix,
+    sd_kb, rssi, net_mode,
+    sht_temp_c,
+    sht_hum_rh,
+    dew_point_c,
+    hdop,
+    sats_view,
+    ds18_ctrl_c,
+    ds18_motor_c,
+    ina_bus_v,
+    ina_current_a,
+    ina_power_w,
+    ina_energy_wh
+FROM public.kart_telemetry
+ORDER BY id DESC
+LIMIT 100;
+
+-- 4. Force PostgREST API Schema Cache Reload so ESP32 HTTP POST populates new columns immediately
+NOTIFY pgrst, 'reload schema';
+
+-- 5. Verification Query: Confirm all new columns exist and inspect latest live telemetry
+SELECT
+    id, session_id, rtc_ts, vbat_mv,
+    gyro_temp_c, rtc_temp_c, sht_temp_c, sht_hum_rh, dew_point_c,
+    ds18_ctrl_c, ds18_motor_c,
+    lat, lon, sats, sats_view, gps_fix, hdop, sd_kb, rssi
+FROM public.v_kart_live
+LIMIT 5;

@@ -1,7 +1,7 @@
 -- ============================================================================
 -- SOTA IoT Electric Delta-Kart Telemetry Schema for Supabase (PostgreSQL)
 -- Engineered for < 500 MB Free-Tier Footprint & 220 MB SIM Data Plan Efficiency
--- Database Password configured in .env: Fourier98*ingdatosutp2026
+-- Database credentials stored exclusively in gitignored local .env
 -- ============================================================================
 
 -- 1. Kart Sessions Table (Tracks each boot / SD card log file session + Boot Self-Test JSON)
@@ -16,11 +16,13 @@ CREATE TABLE IF NOT EXISTS public.kart_sessions (
     max_g_force     REAL NOT NULL DEFAULT 0.0,
     min_vbat_mv     SMALLINT,
     max_gyro_temp_c REAL,
-    test            JSONB DEFAULT '{}'::JSONB
+    test            JSONB DEFAULT '{}'::JSONB,
+    calibration     JSONB DEFAULT '{}'::JSONB
 );
 
--- Migration if kart_sessions was already created without the `test` column:
+-- Migration if kart_sessions was already created without `test` or `calibration` columns:
 ALTER TABLE public.kart_sessions ADD COLUMN IF NOT EXISTS test JSONB DEFAULT '{}'::JSONB;
+ALTER TABLE public.kart_sessions ADD COLUMN IF NOT EXISTS calibration JSONB DEFAULT '{}'::JSONB;
 
 -- 2. Ultra-Compact Telemetry Table (~76 Bytes/Row -> ~5.5 Million Rows in 500 MB!)
 CREATE TABLE IF NOT EXISTS public.kart_telemetry (
@@ -63,8 +65,35 @@ CREATE TABLE IF NOT EXISTS public.kart_telemetry (
     -- Storage & Network Diagnostics
     sd_kb           INTEGER NOT NULL DEFAULT 0,         -- Current SD log size in KB
     rssi            SMALLINT NOT NULL DEFAULT 0,        -- Wi-Fi dBm or Cellular CSQ
-    net_mode        SMALLINT NOT NULL DEFAULT 1         -- 1=Wi-Fi, 2=4G LTE SIM, 3=SD Replay
+    net_mode        SMALLINT NOT NULL DEFAULT 1,        -- 1=Wi-Fi, 2=4G LTE SIM, 3=SD Replay
+
+    -- Sensirion SHT31-DIS Ambient (IO40 SDA / IO39 SCL), DS18B20 1-Wire Probe(s) & Multi-GNSS Quality
+    sht_temp_c      REAL DEFAULT NULL,                  -- Calibrated SHT31 ambient temp (°C)
+    sht_hum_rh      REAL DEFAULT NULL,                  -- Calibrated SHT31 relative humidity (%RH)
+    dew_point_c     REAL DEFAULT NULL,                  -- Magnus-Tetens Dew Point (°C)
+    hdop            REAL DEFAULT NULL,                  -- GNSS Horizontal Dilution of Precision
+    sats_view       SMALLINT DEFAULT NULL,              -- Multi-GNSS Satellites in View
+    ds18_ctrl_c     REAL DEFAULT NULL,                  -- Calibrated DS18B20 Probe 0: Controller TS T-Alpha (°C)
+    ds18_motor_c    REAL DEFAULT NULL,                  -- Calibrated DS18B20 Probe 1: Motor Stator Ts (°C)
+    ina_bus_v       REAL DEFAULT NULL,                  -- TI INA226/INA228 48V DC Traction Pack Voltage (V)
+    ina_current_a   REAL DEFAULT NULL,                  -- TI INA226/INA228 48V DC Traction Current (A)
+    ina_power_w     REAL DEFAULT NULL,                  -- TI INA226/INA228 48V DC Traction Power (W)
+    ina_energy_wh   REAL DEFAULT NULL                   -- Cumulative Traction Energy (Wh)
 );
+
+-- Additive Migration if `kart_telemetry` already exists with historical rows:
+ALTER TABLE public.kart_telemetry
+    ADD COLUMN IF NOT EXISTS sht_temp_c    REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS sht_hum_rh    REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS dew_point_c   REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS hdop          REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS sats_view     SMALLINT DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS ds18_ctrl_c   REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS ds18_motor_c  REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS ina_bus_v     REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS ina_current_a REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS ina_power_w   REAL DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS ina_energy_wh REAL DEFAULT NULL;
 
 -- 3. Compact BRIN & B-Tree Indexes (BRIN uses <1% of B-Tree space for time-series!)
 CREATE INDEX IF NOT EXISTS idx_kart_telemetry_rtc_brin ON public.kart_telemetry USING BRIN (rtc_ts);
@@ -135,7 +164,7 @@ BEGIN
     END IF;
 END $$;
 
--- 7. Helper View for Dashboard (Converts vbat_mv to vbat_v on the fly)
+-- 7. Helper View for Dashboard (Preserves cols 1..29 in exact order + appends cols 30..34)
 CREATE OR REPLACE VIEW public.v_kart_live AS
 SELECT
     id,
@@ -151,8 +180,21 @@ SELECT
     roll, pitch, yaw,
     peak_g, vib_rms,
     lat, lon, speed_kmh, alt_m, course_deg, sats, gps_fix,
-    sd_kb, rssi, net_mode
+    sd_kb, rssi, net_mode,
+    sht_temp_c,
+    sht_hum_rh,
+    dew_point_c,
+    hdop,
+    sats_view,
+    ds18_ctrl_c,
+    ds18_motor_c,
+    ina_bus_v,
+    ina_current_a,
+    ina_power_w,
+    ina_energy_wh
 FROM public.kart_telemetry
 ORDER BY id DESC
 LIMIT 100;
+
+NOTIFY pgrst, 'reload schema';
 

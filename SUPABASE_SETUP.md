@@ -14,9 +14,9 @@ This guide explains how to set up your free **Supabase** project to receive live
    - **Project API Keys**: Copy the `anon` / `public` key.
 5. In your project directory, open `.env` and fill in:
    ```env
-   SUPABASE_URL="https://xyzabcdefg.supabase.co"
-   SUPABASE_ANON_KEY="eyJhbGciOi..."
-   SUPABASE_DB_PASSWORD="Fourier98*ingdatosutp2026"
+   SUPABASE_URL="https://your-project-ref.supabase.co"
+   SUPABASE_ANON_KEY="sb_publishable_your_public_anon_key"
+   SUPABASE_DB_PASSWORD="<YOUR_LOCAL_DB_PASSWORD>"
    ```
 6. Also paste your `SUPABASE_URL` and `SUPABASE_ANON_KEY` into `main/config.h`:
    ```cpp

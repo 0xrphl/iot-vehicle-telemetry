@@ -19,8 +19,15 @@
   #define OUT Serial
 #endif
 
-#define WIFI_SSID "FamiliaSanchez."
-#define WIFI_PASS "Movistar0898*"
+#if __has_include("../main/secrets.h")
+  #include "../main/secrets.h"
+#endif
+#ifndef WIFI_SSID
+  #define WIFI_SSID "YOUR_PRIMARY_WIFI_SSID"
+#endif
+#ifndef WIFI_PASS
+  #define WIFI_PASS "YOUR_PRIMARY_WIFI_PASSWORD"
+#endif
 #define BOARD_LED 12
 
 #define PIN_WIRE0_SDA 1

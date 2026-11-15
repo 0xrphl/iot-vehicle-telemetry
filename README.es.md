@@ -4,23 +4,25 @@
 
 Sistema de telemetría IoT de alta frecuencia para un solo vehículo (Delta-Kart Eléctrico), modelo 3D paramétrico del chasis tubular de 30mm, mapa GPS oscuro Leaflet con superposición 3D en tiempo real, registro de caja negra con reloj TCXO DS3231 y sincronización adaptativa 4G LTE / Wi-Fi hacia Supabase para la placa **LilyGO T-SIM7672G V1.1 (ESP32-S3-WROOM-1 MCN16R8)**.
 
-[![Versión](https://img.shields.io/badge/versión-2.0.0-blue.svg)]()
-[![Ubicación](https://img.shields.io/badge/ubicación-Pereira%2C%20Colombia-orange.svg)]()
+[![Versión](https://img.shields.io/badge/versión-2.2.0-blue.svg)]()
+[![Ubicación](https://img.shields.io/badge/ubicación-UTP%20Pereira%2C%20Colombia-orange.svg)]()
 [![Demo en Vivo](https://img.shields.io/badge/▶_Demo_en_Vivo-Dashboard_3D_R3F-00c853.svg)](https://0xraphael.com/college/iot-vehicle-telemetry)
 [![Hardware](https://img.shields.io/badge/MCU-LilyGO_T--SIM7672G_ESP32--S3-7c4dff.svg)](https://github.com/0xrphl/iot-vehicle-telemetry)
 
 ---
 
-## 1. Arquitectura de Hardware (Un Solo Vehículo)
+## 1. Arquitectura de Hardware e Instrumentación (Un Solo Vehículo)
 
 - **Microcontrolador Maestro**: **LilyGO T-SIM7672G V1.1** (`ESP32-S3-WROOM-1 MCN16R8`, Dual-Core 240MHz, `16MB Flash`, `8MB OPI PSRAM`).
-- **Módem 4G LTE y Multi-GNSS**: **SIM7672G** 4G LTE Cat-1 + Multi-Constelación GNSS (`GPS + GLONASS + Galileo + BeiDou`) con control de alimentación LNA (`GPIO 4`).
-- **Operador Celular**: **Movistar Colombia (Plan de Datos IoT de 220 MB)** con APN `internet.movistar.com.co` (>650 horas de conducción activa).
-- **IMU Primaria 6-DOF**: **Bosch BMI160** (Giroscopio ±250 °/s, Acelerómetro ±2g, temperatura interna del chip °C) en **`Wire` Bus 0 (`SDA: GPIO 1`, `SCL: GPIO 2`)** a **400 kHz Fast-Mode**.
-- **Reloj RTC de Precisión y EEPROM**: **Maxim DS3231SN/MZ TCXO** (±2ppm, `0x68`) + **EEPROM AT24C32 32Kbit** (`0x57`) con batería CR2032 en **`Wire1` Bus 1 (`SDA: GPIO 42`, `SCL: GPIO 41`)** a **400 kHz Fast-Mode** (Cero colisión de direcciones I2C).
-- **Energía y Doble Perfil Térmico**: Portabatería **18650 Li-Ion** monitoreado en `GPIO 4` (reporta estrictamente `V` y `mV` reales, **sin porcentaje**) + entrada solar en `GPIO 5`.
-- **Caja Negra Local**: Tarjeta **MicroSDHC de 32 GB** por SPI (`CS: 13, MOSI: 14, SCK: 21, MISO: 47`) registrando archivos CSV a **5 Hz (cada 200ms)** en `/logs/kart_session_XXXX.csv` (>11,000 horas).
-- **Base de Datos en la Nube**: **Supabase PostgreSQL** (`kart_sessions`, `kart_telemetry` ~76 bytes/fila, `v_kart_live`) con trigger automático (`enforce_telemetry_storage_cap()`) que mantiene el almacenamiento bajo el límite gratuito de **500 MB**.
+- **Módem 4G LTE y Multi-GNSS**: **SIM7670G / SIM7672G** 4G LTE Cat-1 + Multi-Constelación GNSS (`GPS + GLONASS + Galileo + BeiDou`) con antena cerámica activa 28dBi polarizada a 3.3V (`AT+CGSETV=4,1`) y pin `RESET` (`GPIO 17` en `HIGH`).
+- **Wi-Fi Dual Inteligente + Hotspot Local Concurrente (`WIFI_AP_STA`)**: Auto-escanea Wi-Fi primario y respaldo universitario (`utp` / `UTP`, credenciales en `secrets.h` ignorado por Git) hacia Supabase + NTP atómico, mientras emite simultáneamente **`Kart-Cal-Lab`** (`12345678`) en **`http://192.168.4.1/`** (Cubo 3D a 30 Hz + gráfica en tiempo real Temp/HR + laboratorio de calibración `/cal` sin dependencias CDN).
+- **Bus 0 (`Wire`, 400 kHz) — IMU 6-DOF**: **Bosch BMI160** (`SDA: GPIO 1`, `SCL: GPIO 2`, `0x68`) a **30 Hz** con calibración estacionaria de bias y nivel 1g.
+- **Bus 1 (`Wire1`, 100 kHz) — Reloj RTC y EEPROM**: **Maxim DS3231SN TCXO** (`0x68`, verificación genuina BCD + ajuste de cristal `Reg 0x10`) + **EEPROM AT24C32** (`0x57`) en `SDA: GPIO 42`, `SCL: GPIO 41`.
+- **Bus 2 (Open-Drain I2C Dedicado, 100 kHz) — Ambiente**: **Sensirion SHT31-DIS Rojo de 4 Pines** (`SDA: GPIO 40`, `SCL: GPIO 39`, `0x44` + doble CRC-8 `0x31`) a **2 Hz** con calibración NVS, punto de rocío Magnus-Tetens, VPD y BIST de calefactor.
+- **Bus 3 (Open-Drain I2C Dedicado, 100 kHz) — Monitor de Batería de Tracción 48V DC**: Texas Instruments **INA226 (16 bits) / INA228 (20 bits 85V)** (`SDA: GPIO 6`, `SCL: GPIO 7`, `VCC: 3V3`, `GND: GND`, `0x40`) a **20 Hz** midiendo tensión del banco de 48V (`V`), shunt (`mV`), corriente (`A`), potencia (`W`) y energía acumulada (`Wh` / `Ah`).
+- **Bus 4 (Maxim 1-Wire) — Sondas Térmicas**: Sonda impermeable M12 **DS18B20** en **`GPIO 15`** (+ pull-up obligatoria de **`4.7 kΩ`** a `3V3`; auto-escanea pines libres `IO15, 16, 8`; evita `IO46`) soportando 1–2 sondas (`ds18_ctrl_c` Controlador y `ds18_motor_c` Motor) a 11 bits (`0.125°C`, `385ms` no bloqueante + CRC-8).
+- **Energía y Caja Negra MicroSD 32 GB**: Batería **18650** (`GPIO 4` ADC en `V` y `mV` reales, sin %) + **MicroSD 32 GB** (`CS:13, MOSI:14, SCK:21, MISO:47`) preservando todos los CSVs en `/logs/` (5 Hz) y `/calibration/`.
+- **Base de Datos en la Nube**: **Supabase PostgreSQL** (`kart_sessions`, `kart_telemetry`, `v_kart_live`) con auto-negociación de columnas y anillo `<500 MB`.
 
 ---
 
@@ -31,6 +33,20 @@ Sistema de telemetría IoT de alta frecuencia para un solo vehículo (Delta-Kart
 | Foto de Montaje 1 | Foto de Montaje 2 | Foto de Montaje 3 |
 | :---: | :---: | :---: |
 | ![Montaje 1](hardware_schematics/IMG_20261104_113059.jpg) | ![Montaje 2](hardware_schematics/IMG_20261104_113117.jpg) | ![Montaje 3](hardware_schematics/IMG_20261104_113129.jpg) |
+
+### Galería de Sensores, Abrazadera Axial PETG (Tubo 38.4mm) y Chasis Eléctrico
+
+| Reporte de Partes y Stock | SHT31 Rojo 4 Pines (`IO40/39`) | Sonda M12 DS18B20 (`IO15`) |
+| :---: | :---: | :---: |
+| ![Partes](images/parts_stock_infographic.jpg) | ![SHT31](images/sht31_sensor_module.png) | ![DS18B20](images/ds18b20_waterproof_probe.png) |
+
+| Reloj DS3231 + AT24C32 (`IO42/41`) | CAD SolidWorks Sujeción 38.4mm | Laminado PETG 100% ElegooSlicer |
+| :---: | :---: | :---: |
+| ![DS3231](images/ds3231_rtc_clock_closeup.png) | ![SolidWorks](images/petg_tube_clamp_solidworks.png) | ![Slicer](images/petg_tube_clamp_slicer.png) |
+
+| Caja y Abrazadera Impresa en PETG | Geometría 3D de Tubos del Chasis | Chasis Tubular Real en Taller UTP |
+| :---: | :---: | :---: |
+| ![PETG Impreso](images/petg_enclosure_printed.jpg) | ![CAD Chasis](images/kart_chassis_cad_geometry.png) | ![Taller UTP](images/kart_chassis_workshop.jpg) |
 
 ---
 
