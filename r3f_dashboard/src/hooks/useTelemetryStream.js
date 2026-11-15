@@ -1,5 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+const SUPABASE_BASE_URL = (
+  import.meta.env.VITE_IOT_KART_SUPABASE_URL ||
+  import.meta.env.VITE_SUPABASE_URL ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+  'https://tapjoxeplcyeohsnrmnl.supabase.co'
+).replace(/\/$/, '');
+
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_IOT_KART_SUPABASE_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  'sb_publishable_m6sJshs7hjbYHlE0lUGx9Q_ZM-wXn6e';
+
 const DEFAULT_TELEMETRY = {
   ts: '2026-11-08T17:00:00Z',
   vbat_mv: 4040,
@@ -179,8 +192,8 @@ export function useTelemetryStream() {
     let unmounted = false;
     const fetchLatestFromSupabase = async () => {
       try {
-        const url = 'https://tapjoxeplcyeohsnrmnl.supabase.co/rest/v1/kart_telemetry?order=id.desc&limit=1';
-        const key = 'sb_publishable_m6sJshs7hjbYHlE0lUGx9Q_ZM-wXn6e';
+        const url = `${SUPABASE_BASE_URL}/rest/v1/kart_telemetry?order=id.desc&limit=1`;
+        const key = SUPABASE_ANON_KEY;
         const resp = await fetch(url, {
           headers: {
             'apikey': key,
@@ -291,8 +304,8 @@ export function useTelemetryStream() {
       setSupabaseStatus('LOADING DAY...');
       const startIso = `${dateStr}T00:00:00Z`;
       const endIso   = `${dateStr}T23:59:59Z`;
-      const url = `https://tapjoxeplcyeohsnrmnl.supabase.co/rest/v1/kart_telemetry?rtc_ts=gte.${startIso}&rtc_ts=lte.${endIso}&order=id.asc&limit=500`;
-      const key = 'sb_publishable_m6sJshs7hjbYHlE0lUGx9Q_ZM-wXn6e';
+      const url = `${SUPABASE_BASE_URL}/rest/v1/kart_telemetry?rtc_ts=gte.${startIso}&rtc_ts=lte.${endIso}&order=id.asc&limit=500`;
+      const key = SUPABASE_ANON_KEY;
       const resp = await fetch(url, {
         headers: { apikey: key, Authorization: `Bearer ${key}` }
       });

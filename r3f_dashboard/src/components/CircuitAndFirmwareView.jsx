@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 
 const FIRMWARE_FILES = [
   { id: 'main.ino', label: 'main/main.ino', path: './firmware/main/main.ino', desc: 'Master 30Hz IMU/WS + 20Hz INA22x 48V + 2Hz SHT31 + 1Hz DS18B20/GNSS + 5Hz SD + Supabase loop' },
-  { id: 'config.h', label: 'main/config.h', path: './firmware/main/config.h', desc: 'Quad Isolated I2C + 1-Wire pin definitions, Multi-Wi-Fi fallback, UTP geofence & KartTelemetry struct' },
-  { id: 'power_ina22x.h', label: 'power_ina22x.h', path: './firmware/main/power_ina22x/power_ina22x.h', desc: 'TI INA226 (16-bit) & INA228 (20-bit 85V) 48V DC Traction Pack monitor on SDA=IO6, SCL=IO7 + Wh/Ah integrator' },
-  { id: 'env_sht31.h', label: 'env_sht31.h', path: './firmware/main/env_sht31/env_sht31.h', desc: 'Red 4-Pin Sensirion SHT31-DIS on SDA=IO40, SCL=IO39 (0x44), dual CRC-8, Magnus Dew Point/VPD & Heater BIST' },
-  { id: 'temp_ds18b20.h', label: 'temp_ds18b20.h', path: './firmware/main/temp_ds18b20/temp_ds18b20.h', desc: 'Zero-dependency ESP32-S3 1-Wire driver on IO15 (+4.7k pull-up) for Controller & Motor DS18B20 probes' },
-  { id: 'imu_bmi160.h', label: 'imu_bmi160.h', path: './firmware/main/imu_bmi160/imu_bmi160.h', desc: 'Bosch BMI160 6-DOF driver on Wire0 (IO1/IO2 @ 400kHz), gyro zero-bias cal, complementary filter & vibration RMS' },
-  { id: 'rtc_ds3231.h', label: 'rtc_ds3231.h', path: './firmware/main/rtc_ds3231/rtc_ds3231.h', desc: 'Genuine DS3231 TCXO (0x68) + AT24C32 (0x57) on Wire1 (IO42/IO41), NTP/GNSS sync & crystal aging trim' },
-  { id: 'gps_sim7672.h', label: 'gps_sim7672.h', path: './firmware/main/gps_sim7672/gps_sim7672.h', desc: 'SIM7670G/7672G 4G LTE + Multi-GNSS (active 28dBi LNA, $GxGSV SNR & UTP Pereira lock)' },
-  { id: 'calibration_manager.h', label: 'calibration_manager.h', path: './firmware/main/calibration/calibration_manager.h', desc: '6-Sensor NVS & MicroSD (/calibration/*.csv) calibration curve manager' },
-  { id: 'ina22x_48v_cal_test.ino', label: 'ina22x_48v_cal_test.ino', path: './firmware/ina22x_48v_cal_test/ina22x_48v_cal_test.ino', desc: 'Standalone bench testing & multimeter/shunt calibration suite for INA226/INA228 48V DC' },
-  { id: 'self_test.h', label: 'self_test.h', path: './firmware/main/self_test/self_test.h', desc: '10-Subsystem Parametric Boot & Live Self-Test (BIST) synced to kart_sessions.test' },
+  { id: 'config.h', label: 'main/config.h', path: './firmware/main/config.h', desc: 'Quad Isolated I2C + 1-Wire pin definitions, secrets.h loader, UTP geofence & KartTelemetry struct' },
+  { id: 'power_ina22x.h', label: 'sensors/power_ina22x.h', path: './firmware/main/sensors/power_ina22x.h', desc: 'TI INA226 (16-bit) & INA228 (20-bit 85V) 48V DC Traction Pack monitor on SDA=IO6, SCL=IO7 + Wh/Ah integrator' },
+  { id: 'env_sht31.h', label: 'sensors/env_sht31.h', path: './firmware/main/sensors/env_sht31.h', desc: 'Red 4-Pin Sensirion SHT31-DIS on SDA=IO40, SCL=IO39 (0x44), dual CRC-8, Magnus Dew Point/VPD & Heater BIST' },
+  { id: 'temp_ds18b20.h', label: 'sensors/temp_ds18b20.h', path: './firmware/main/sensors/temp_ds18b20.h', desc: 'Zero-dependency ESP32-S3 1-Wire driver on IO15 (+4.7k pull-up) for Controller & Motor DS18B20 probes' },
+  { id: 'imu_bmi160.h', label: 'sensors/imu_bmi160.h', path: './firmware/main/sensors/imu_bmi160.h', desc: 'Bosch BMI160 6-DOF driver on Wire0 (IO1/IO2 @ 400kHz), gyro zero-bias cal, complementary filter & vibration RMS' },
+  { id: 'rtc_ds3231.h', label: 'sensors/rtc_ds3231.h', path: './firmware/main/sensors/rtc_ds3231.h', desc: 'Genuine DS3231 TCXO (0x68) + AT24C32 (0x57) on Wire1 (IO42/IO41), NTP/GNSS sync & crystal aging trim' },
+  { id: 'gps_sim7672.h', label: 'sensors/gps_sim7672.h', path: './firmware/main/sensors/gps_sim7672.h', desc: 'SIM7670G/7672G 4G LTE + Multi-GNSS (active 28dBi LNA, $GxGSV SNR & UTP Pereira lock)' },
+  { id: 'calibration_manager.h', label: 'calibration/calibration_manager.h', path: './firmware/main/calibration/calibration_manager.h', desc: '6-Sensor NVS & MicroSD (/calibration/*.csv) calibration curve manager' },
+  { id: 'self_test.h', label: 'boot_test/self_test.h', path: './firmware/main/boot_test/self_test.h', desc: '10-Subsystem Parametric Boot & Live Self-Test (BIST) synced to kart_sessions.test' },
+  { id: 'telemetry_sync.h', label: 'local_dashboard/telemetry_sync.h', path: './firmware/main/local_dashboard/telemetry_sync.h', desc: 'Dual Wi-Fi + Kart-Cal-Lab (192.168.4.1) AP_STA + 30Hz WS + Supabase Cloud Dispatcher' },
   { id: 'schema.sql', label: 'supabase/schema.sql', path: './firmware/supabase/schema.sql', desc: 'PostgreSQL schema + additive migration columns for SHT31, DS18B20, INA22x 48V & Multi-GNSS' }
 ];
 

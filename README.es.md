@@ -61,4 +61,27 @@ Sistema de telemetría IoT de alta frecuencia para un solo vehículo (Delta-Kart
 | **5** | **Panel Solar (5V–6V 150mA)** | Carga solar auxiliar monitoreada en `GPIO 5` ADC | **$5.49** |
 | **6** | **Tarjeta MicroSDHC 32 GB** | Almacenamiento SPI Clase 10 (`/logs/kart_session_XXXX.csv` a 5Hz) | **$5.80** |
 | **7** | **SIM 4G Movistar + Arnés Dupont** | Plan IoT de 220 MB (`internet.movistar.com.co`) + Cables Dupont siliconados | **$5.01** |
-| | **TOTAL (1 Vehículo)** | **Nodo Completo de Telemetría Delta-Kart** | **$69.50 USD** |
+---
+
+## 4. Arquitectura de Carpetas del Repositorio y Firmware Modular (`main/`)
+
+Todo el código del ESP32-S3 reside dentro de **`main/`**, organizado en **4 pilares de ingeniería** (`sensors/`, `calibration/`, `boot_test/` y `local_dashboard/`), sincronizado de forma idéntica con el portafolio (`public/college/iot-vehicle-telemetry/firmware/`):
+
+```text
+iot-vehicle-telemetry/
+├── .env / .env.example                  # Variables de entorno para Dashboard Three.js R3F, Bridge Python y Supabase
+├── circuit_layout_full.{svg,png}        # Esquema eléctrico final 1780x1130 (4 buses I2C aislados + 1-Wire)
+├── hardware_schematics/                 # Los 8 datasheets PDF oficiales + fotos PCB + esquemas
+├── images/                              # Galería de sensores, sujeción PETG 38.4mm SolidWorks y chasis UTP
+├── supabase/                            # schema.sql + SUPABASE_PENDING_COLUMNS_MIGRATION.sql
+├── r3f_dashboard/                       # Dashboard Web 3D React Three Fiber + Leaflet (lee ../.env)
+├── dashboard_server/                    # Puente local USB-Serial -> WebSocket en Python (lee ../.env)
+└── main/                                # FIRMWARE MAESTRO ARDUINO ESP32-S3
+    ├── main.ino                         # Punto único de entrada para flashear en Arduino IDE
+    ├── config.h                         # Pines, struct KartTelemetry y valores seguros por defecto
+    ├── secrets.h / secrets.example.h    # [IGNORADO POR GIT] Credenciales Wi-Fi, Hotspot, APN y Supabase
+    ├── sensors/                         # 1. Drivers de sensores (BMI160, DS3231, SHT31, INA22x, DS18B20, GNSS, 18650, SD)
+    ├── calibration/                     # 2. Curvas de calibración NVS + SD (/calibration/*.csv) para los 6 sensores
+    ├── boot_test/                       # 3. Autoprueba de arranque de 10 subsistemas (self_test.h) + bench_sketches/
+    └── local_dashboard/                 # 4. Dashboard local 30Hz (192.168.4.1), portal /cal y sincronización Supabase
+```

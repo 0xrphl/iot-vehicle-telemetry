@@ -85,10 +85,64 @@ High-frequency single-vehicle IoT telemetry system, parametric 30mm profile tube
 
 ---
 
-## 3. Quick Start: Flashing the Master Firmware
+## 3. Quick Start: Flashing the Master Firmware (`main/main.ino`)
 
+### Unified Repository & Modular Firmware Folder Schema
+
+All ESP32-S3 firmware lives cleanly inside **`main/`**, organized into **4 modular engineering pillars** (`sensors/`, `calibration/`, `boot_test/`, and `local_dashboard/`) — mirrored 100% identically between this standalone telemetry repository and the embedded portfolio firmware (`public/college/iot-vehicle-telemetry/firmware/`):
+
+```text
+iot-vehicle-telemetry/
+├── .env / .env.example                  # Vite Three.js R3F Dashboard + Python Bridge + Supabase env vars
+├── circuit_layout_full.{svg,png}        # Final 1780x1130 Quad-I2C + 1-Wire vector & PNG schematic
+├── hardware_schematics/                 # All 8 official PDF datasheets (SIM7672X, INA228, SHT31, DS18B20, BMI160, DS3231, AT24C32, FNIRSI)
+├── images/                              # Hardware build, SolidWorks PETG 38.4mm clamp, SHT31, DS18B20 & UTP chassis gallery
+├── supabase/                            # schema.sql + SUPABASE_PENDING_COLUMNS_MIGRATION.sql
+├── r3f_dashboard/                       # Three.js / React Three Fiber + Dark Leaflet Web Dashboard (reads ../.env)
+├── dashboard_server/                    # Local USB-Serial -> WebSocket Python bridge (reads ../.env)
+│
+└── main/                                # MASTER ARDUINO ESP32-S3 FIRMWARE
+    ├── main.ino                         # Single entry point: open in Arduino IDE & click Upload!
+    ├── config.h                         # Hardware pinout matrix, KartTelemetry struct & safe fallback defaults
+    ├── secrets.h / secrets.example.h    # [GITIGNORED] Local Wi-Fi, Hotspot, SIM APN & Supabase keys
+    │
+    ├── sensors/                         # 1. ALL HARDWARE SENSOR, MODEM, POWER & SD DRIVERS
+    │   ├── imu_bmi160.h                 # Bosch BMI160 6-DOF Gyro/Accel (Wire0: IO1/IO2 @ 400kHz, 30 Hz)
+    │   ├── rtc_ds3231.h                 # Maxim DS3231 TCXO RTC + AT24C32 EEPROM (Wire1: IO42/IO41)
+    │   ├── env_sht31.h                  # Red 4-Pin Sensirion SHT31-DIS (Bus2 Open-Drain: IO40/IO39, 2 Hz)
+    │   ├── power_ina22x.h               # TI INA226/INA228 48V DC Battery Monitor (Bus3: IO6/IO7, 20 Hz)
+    │   ├── temp_ds18b20.h               # Waterproof DS18B20 1-Wire Probe(s) (IO15 + 4.7kΩ pull-up, 1 Hz)
+    │   ├── gps_sim7672.h                # SIM7670G/7672G 4G LTE + Active 28dBi Multi-GNSS (1 Hz)
+    │   ├── power_18650.h                # Onboard 18650 Battery & Solar ADC (IO4/IO5, raw V & mV)
+    │   └── sd_logger.h                  # 32GB MicroSD 5Hz Blackbox & Calibration CSV Logger
+    │
+    ├── calibration/                     # 2. MULTI-SENSOR CALIBRATION CURVES & NVS/SD PERSISTENCE
+    │   ├── calibration_manager.h        # Master 6-sensor NVS + SD `/calibration/*.csv` orchestrator
+    │   ├── ina22x_48v_cal/              # 48V Shunt Ohms, VBUS divider, Zero-A Tare & Multimeter trim
+    │   ├── sht31_env_cal/               # 1-pt/2-pt Temp/%RH OLS, Magnus Dew Point & Heater BIST
+    │   ├── ds18b20_probe_cal/           # Controller/Motor 1-Wire trim & ROM role swap
+    │   ├── imu_bmi160_cal/              # 150-sample stationary Gyro Zero-Bias, 1g Level & 3D Tare
+    │   ├── rtc_ds3231_cal/              # Atomic NTP UTC sync, PPM drift & Reg 0x10 Crystal Aging trim
+    │   └── gps_gnss_cal/                # UTP Geodetic Benchmark & CEP50/CEP95 scatter analyzer
+    │
+    ├── boot_test/                       # 3. PARAMETRIC BOOT SELF-TEST (BIST) & BENCH DIAGNOSTICS
+    │   ├── self_test.h                  # 10-Subsystem Boot & Live BIST Engine (`kart_sessions.test`)
+    │   └── bench_sketches/              # Optional standalone single-sensor `.ino` bench tools
+    │       ├── ina22x_48v_cal_test/ina22x_48v_cal_test.ino
+    │       ├── sht31_gps_cal_test/sht31_gps_cal_test.ino
+    │       └── rtc_troubleshoot/rtc_troubleshoot.ino
+    │
+    └── local_dashboard/                 # 4. LOCAL ESP32 REAL-TIME WEB UI, CAL PORTAL & CLOUD SYNC
+        ├── embedded_dashboard.h         # Zero-CDN 30Hz 3D Cube + Live Temp/RH Chart (`http://192.168.4.1/`)
+        ├── calibration_portal.h         # Interactive 6-Sensor Web Calibration Lab (`http://192.168.4.1/cal`)
+        ├── MinWebSockets.h              # Lightweight RFC-6455 WebSocket Server (Port 81)
+        └── telemetry_sync.h             # Dual Wi-Fi + `Kart-Cal-Lab` AP_STA + Supabase Cloud Dispatcher
+```
+
+### Flashing Steps:
 1. Open **Arduino IDE**.
-2. Open [`main/main.ino`](./main/main.ino).
+2. Verify `main/secrets.h` is present (or copy `main/secrets.example.h` $\rightarrow$ `main/secrets.h` with your Wi-Fi & Supabase credentials).
+3. Open [`main/main.ino`](./main/main.ino).
 3. Board Configuration (`Tools` menu):
    - **Board**: `ESP32S3 Dev Module`
    - **USB CDC On Boot**: `Enabled`
