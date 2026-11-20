@@ -1,0 +1,13 @@
+{
+  "name": "iot-vehicle-telemetry",
+  "private": true,
+  "version": "2.2.0",
+  "description": "SOTA IoT Electric Delta-Kart Telemetry & 3D React Three Fiber + Leaflet Dashboard (LilyGO T-SIM7672G V1.1 ESP32-S3)",
+  "scripts": {
+    "postinstall": "npm --prefix r3f_dashboard install",
+    "dev": "npm --prefix r3f_dashboard run dev",
+    "build": "npm --prefix r3f_dashboard run build",
+    "preview": "npm --prefix r3f_dashboard run preview"
+  }
+}
+

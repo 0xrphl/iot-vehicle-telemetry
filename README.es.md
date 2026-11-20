@@ -70,8 +70,8 @@ Todo el código del ESP32-S3 reside dentro de **`main/`**, organizado en **4 pil
 ```text
 iot-vehicle-telemetry/
 ├── .env / .env.example                  # Variables de entorno para Dashboard Three.js R3F, Bridge Python y Supabase
-├── circuit_layout_full.{svg,png}        # Esquema eléctrico final 1780x1130 (4 buses I2C aislados + 1-Wire)
-├── hardware_schematics/                 # Los 8 datasheets PDF oficiales + fotos PCB + esquemas
+├── docs/                                # Lista de materiales AliExpress, tutorial local, intervalos y Supabase
+├── hardware_schematics/                 # Esquemas eléctricos (SVG/PNG) + 8 datasheets PDF oficiales + fotos PCB
 ├── images/                              # Galería de sensores, sujeción PETG 38.4mm SolidWorks y chasis UTP
 ├── supabase/                            # schema.sql + SUPABASE_PENDING_COLUMNS_MIGRATION.sql
 ├── r3f_dashboard/                       # Dashboard Web 3D React Three Fiber + Leaflet (lee ../.env)
@@ -85,3 +85,18 @@ iot-vehicle-telemetry/
     ├── boot_test/                       # 3. Autoprueba de arranque de 10 subsistemas (self_test.h) + bench_sketches/
     └── local_dashboard/                 # 4. Dashboard local 30Hz (192.168.4.1), portal /cal y sincronización Supabase
 ```
+
+---
+
+## 5. Ejecución Autónoma del Dashboard 3D (`npm install` + `npm run dev`)
+
+1. **Ejecutar directamente desde la raíz del repositorio:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+   *(Opcional: Si tienes la placa LilyGO ESP32-S3 conectada por cable USB Serial y deseas el puente local COM -> WebSocket en `ws://localhost:8081`, abre [`dashboard_server/run_dashboard.bat`](./dashboard_server/run_dashboard.bat) o ejecuta `python dashboard_server/bridge.py`.)*
+
+2. Abre el navegador en **`http://localhost:5173`**:
+   - **`r3f_dashboard/` (Aplicación Web Principal Autónoma)**: Dashboard completo de 6 vistas en React 18 + Vite + React Three Fiber + Leaflet (Estudio 3D + Mapa, Replay y Gráficas, Pista GPS + PiP, Arquitectura Isométrica, Partes y BOM, Esquema Eléctrico + 8 Datasheets PDF + Explorador `.ino`).
+   - **`dashboard_server/` (Puente USB-Serial Opcional + Respaldo Ligero)**: `bridge.py` lee telemetría serial a 115200 baudios por puerto COM USB y la retransmite en `ws://localhost:8081`, mientras `server.py` ofrece una vista básica de respaldo en `http://localhost:8080`.

@@ -8,17 +8,36 @@ import { FullTrackMapView } from './components/FullTrackMapView';
 import { IsometricArchitectureView } from './components/IsometricArchitectureView';
 import { PartsAndBomView } from './components/PartsAndBomView';
 import { CircuitAndFirmwareView } from './components/CircuitAndFirmwareView';
+import { StandaloneTopBar } from './components/StandaloneTopBar';
 
 export default function App() {
   const [activeView, setActiveView] = useState('VIEW_1');
   const [lang, setLang] = useState(() => localStorage.getItem('iot-lang') || 'en');
+  const [isStandalone] = useState(() => {
+    try {
+      return window.self === window.top;
+    } catch (_) {
+      return false;
+    }
+  });
+
+  const changeLang = (l) => {
+    setLang(l);
+    localStorage.setItem('iot-lang', l);
+  };
 
   useEffect(() => {
     window.setLang = (l) => {
-      setLang(l);
-      localStorage.setItem('iot-lang', l);
+      changeLang(l);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isStandalone) return;
+    document.title = lang === 'es'
+      ? 'Telemetría Vehicular IoT — Pereira, Risaralda'
+      : 'IoT Vehicle Telemetry — Electric Delta-Kart SOTA';
+  }, [lang, isStandalone]);
 
   const {
     telemetry,
@@ -49,10 +68,13 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {isStandalone && <StandaloneTopBar lang={lang} onChangeLang={changeLang} />}
       <header>
         <div className="brand">
           <span className="badge-sota">REACT THREE FIBER + LEAFLET</span>
-          <span className="brand-title">Electric Delta-Kart SOTA Telemetry</span>
+          <span className="brand-title">
+            {lang === 'es' ? 'Telemetría SOTA Delta-Kart Eléctrico' : 'Electric Delta-Kart SOTA Telemetry'}
+          </span>
           <span className="rtc-pill">DS3231: {telemetry.ts}</span>
         </div>
 
@@ -63,42 +85,42 @@ export default function App() {
             style={{ padding: '4px 9px', fontSize: '10px', borderRadius: '6px' }}
             onClick={() => setActiveView('VIEW_1')}
           >
-            1. 3D STUDIO + MAP
+            {lang === 'es' ? '1. ESTUDIO 3D + MAPA' : '1. 3D STUDIO + MAP'}
           </button>
           <button
             className={`btn ${activeView === 'VIEW_2' ? 'active' : ''}`}
             style={{ padding: '4px 9px', fontSize: '10px', borderRadius: '6px' }}
             onClick={() => setActiveView('VIEW_2')}
           >
-            2. DAY REPLAY &amp; CHARTS
+            {lang === 'es' ? '2. REPLAY Y GRÁFICAS' : '2. DAY REPLAY & CHARTS'}
           </button>
           <button
             className={`btn ${activeView === 'VIEW_3' ? 'active' : ''}`}
             style={{ padding: '4px 9px', fontSize: '10px', borderRadius: '6px' }}
             onClick={() => setActiveView('VIEW_3')}
           >
-            3. FULL GPS TRACK + PIP
+            {lang === 'es' ? '3. PISTA GPS + PIP' : '3. FULL GPS TRACK + PIP'}
           </button>
           <button
             className={`btn ${activeView === 'VIEW_4' ? 'active' : ''}`}
             style={{ padding: '4px 9px', fontSize: '10px', borderRadius: '6px' }}
             onClick={() => setActiveView('VIEW_4')}
           >
-            4. 🏗️ ARCHITECTURE
+            {lang === 'es' ? '4. 🏗️ ARQUITECTURA' : '4. 🏗️ ARCHITECTURE'}
           </button>
           <button
             className={`btn ${activeView === 'VIEW_5' ? 'active' : ''}`}
             style={{ padding: '4px 9px', fontSize: '10px', borderRadius: '6px' }}
             onClick={() => setActiveView('VIEW_5')}
           >
-            5. 💰 PARTS &amp; BOM
+            {lang === 'es' ? '5. 💰 PARTES Y BOM' : '5. 💰 PARTS & BOM'}
           </button>
           <button
             className={`btn ${activeView === 'VIEW_6' ? 'active' : ''}`}
             style={{ padding: '4px 9px', fontSize: '10px', borderRadius: '6px' }}
             onClick={() => setActiveView('VIEW_6')}
           >
-            6. ⚡ CIRCUIT &amp; .INO
+            {lang === 'es' ? '6. ⚡ CIRCUITO Y .INO' : '6. ⚡ CIRCUIT & .INO'}
           </button>
         </div>
 
@@ -127,7 +149,7 @@ export default function App() {
                 loadDayFromSupabase(selectedDate);
               }}
             >
-              DAY HISTORY
+              {lang === 'es' ? 'HISTORIAL DÍA' : 'DAY HISTORY'}
             </button>
           </div>
 
@@ -135,10 +157,10 @@ export default function App() {
             className={`btn ${simMode ? 'active' : ''}`}
             onClick={() => setSimMode((s) => !s)}
           >
-            {simMode ? 'STOP SIM' : 'DEMO'}
+            {simMode ? (lang === 'es' ? 'DETENER SIM' : 'STOP SIM') : 'DEMO'}
           </button>
           <button className="btn btn-tare" onClick={tareNow}>
-            TARE ZERO
+            {lang === 'es' ? 'TARAR CERO' : 'TARE ZERO'}
           </button>
         </div>
       </header>

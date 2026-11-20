@@ -94,8 +94,8 @@ All ESP32-S3 firmware lives cleanly inside **`main/`**, organized into **4 modul
 ```text
 iot-vehicle-telemetry/
 ├── .env / .env.example                  # Vite Three.js R3F Dashboard + Python Bridge + Supabase env vars
-├── circuit_layout_full.{svg,png}        # Final 1780x1130 Quad-I2C + 1-Wire vector & PNG schematic
-├── hardware_schematics/                 # All 8 official PDF datasheets (SIM7672X, INA228, SHT31, DS18B20, BMI160, DS3231, AT24C32, FNIRSI)
+├── docs/                                # Sourcing BOM, Supabase guide, intervals & local tutorial
+├── hardware_schematics/                 # Quad-I2C schematic (SVG/PNG) + 8 official PDF datasheets
 ├── images/                              # Hardware build, SolidWorks PETG 38.4mm clamp, SHT31, DS18B20 & UTP chassis gallery
 ├── supabase/                            # schema.sql + SUPABASE_PENDING_COLUMNS_MIGRATION.sql
 ├── r3f_dashboard/                       # Three.js / React Three Fiber + Dark Leaflet Web Dashboard (reads ../.env)
@@ -150,20 +150,28 @@ iot-vehicle-telemetry/
    - **Flash Mode**: `QIO 80MHz`
    - **PSRAM**: `OPI PSRAM`
    - **Upload Speed**: `921600`
-4. In `main/config.h`, set your Supabase URL & Key (see [`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md)).
+4. In `main/config.h`, set your Supabase URL & Key (see [`SUPABASE_SETUP.md`](./docs/SUPABASE_SETUP.md)).
 5. Click **Upload**.
 
 ---
 
-## 4. Running the SOTA React Three Fiber + Leaflet Dashboard
+## 4. Running the SOTA React Three Fiber + Leaflet Dashboard (Standalone)
 
-1. Launch with one click:
-   Double-click [`dashboard_server/run_dashboard.bat`](./dashboard_server/run_dashboard.bat).
-   *(Or in terminal: `cd r3f_dashboard && npm run dev`)*
+1. **Run directly from the repository root (`npm install` + `npm run dev`):**
+   ```bash
+   npm install
+   npm run dev
+   ```
+   *(Optional: If your ESP32-S3 is plugged in via USB serial and you also want the local COM-to-WebSocket bridge on `ws://localhost:8081`, double-click [`dashboard_server/run_dashboard.bat`](./dashboard_server/run_dashboard.bat) or run `python dashboard_server/bridge.py`.)*
+
 2. Open your browser at:
-   - **React Three Fiber Dashboard**: `http://localhost:5173`
-   - **Vanilla Glassmorphism Fallback**: `http://localhost:8080`
-   - **Network Access**: `http://192.168.1.8:5173` (from phone/tablet on Wi-Fi).
+   - **React Three Fiber Dashboard (All 6 SOTA Views)**: `http://localhost:5173`
+   - **Network Access**: `http://<YOUR_LAN_IP>:5173` (from phone/tablet on Wi-Fi).
+   - **Optional Legacy Vanilla Fallback (`dashboard_server/server.py`)**: `http://localhost:8080`
+
+### `r3f_dashboard/` vs. `dashboard_server/`:
+- **`r3f_dashboard/` (Primary Standalone Web App)**: Full 6-view React 18 + Vite + React Three Fiber + Leaflet application (3D Studio + Map, Day Replay & Charts, Full GPS Track + PiP, Isometric Architecture, Parts & BOM, Quad-I2C Schematic + 8 Datasheets + `.ino` Firmware Explorer). Runs 100% standalone via `npm install && npm run dev` with Demo Simulation, Supabase 4G Cloud polling, CSV Replay, and direct ESP32 Wi-Fi WebSocket (`:81`).
+- **`dashboard_server/` (Optional USB-Serial Bridge + Legacy Fallback)**: Python `bridge.py` reads raw 115200-baud telemetry from a USB-connected LilyGO ESP32-S3 COM port and broadcasts it to `ws://localhost:8081` (plus `server.py` / `index.html` single-page vanilla JS fallback on `:8080`).
 
 ### Dashboard Highlights:
 - **3D Kart Assembly**: Parametric **30 mm profile tube skeleton** (2 steerable front wheels, 1 rear drive wheel) divided into modular files (`TubeSegment`, `MainLadderFrame`, `FrontSuspensionArms`, `RearSwingarmSubframe`, `RollCageAndCockpit`, `KartWheels`).
